@@ -19,7 +19,8 @@ export default class UIScene extends Phaser.Scene {
     this.restartBtn = document.getElementById('restart-btn');
     this.jumpInput  = document.getElementById('jump-input');
     this.jumpBtn    = document.getElementById('jump-btn');
-
+    this.autofireText = document.getElementById('autofire-text');
+    
     // 按钮 -> 发射全局事件
     this.startBtn.onclick   = () => this.game.events.emit('Stage:start');
     this.nextBtn.onclick    = () => this.game.events.emit('Stage:next');
@@ -38,6 +39,10 @@ export default class UIScene extends Phaser.Scene {
       this.powerText.innerText = `火力：${p} (分值 ${s}/${threshold || 0})`;
     });
     gameScene.events.on('UI:updateStage', (c,m) => this.stageText.innerText = `阶段：${c}/${m}`);
+    gameScene.events.on('UI:updateAutoFire', (isOn) => {
+      this.autofireText.innerText = `自动射击：${isOn ? '开启' : '关闭'}`;
+      this.autofireText.style.color = isOn ? '#0f0' : '#fff';
+    });
 
     // 初始化UI显示
     this.hpText.innerText = `HP: ${playerConfig.hp}`;
