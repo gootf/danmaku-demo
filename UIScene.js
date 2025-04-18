@@ -4,6 +4,10 @@ export default class UIScene extends Phaser.Scene {
   }
 
   create() {
+    // 获取GameScene的playerConfig
+    const gameScene = this.scene.get('GameScene');
+    const playerConfig = gameScene.playerConfig || { hp: 4, powerScoreThreshold: 50 };
+
     // 绑定 DOM 元素
     this.hpText     = document.getElementById('hp-text');
     this.powerText  = document.getElementById('power-text');
@@ -29,10 +33,21 @@ export default class UIScene extends Phaser.Scene {
     };
 
     // 监听 GameScene 事件 -> 更新 UI
-    const gameScene = this.scene.get('GameScene');
     gameScene.events.on('UI:updateHP',    hp    => this.hpText.innerText    = `HP: ${hp}`);
-    gameScene.events.on('UI:updatePower', (p,s) => this.powerText.innerText = `火力：${p} (分值 ${s}/50)`);
+    gameScene.events.on('UI:updatePower', (p, s, threshold) => {
+      this.powerText.innerText = `火力：${p} (分值 ${s}/${threshold || 0})`;
+    });
     gameScene.events.on('UI:updateStage', (c,m) => this.stageText.innerText = `阶段：${c}/${m}`);
+
+    // 初始化UI显示
+    this.hpText.innerText = `HP: ${playerConfig.hp}`;
+    
+    // 获取初始火力级别的升级阈值
+    const initialThreshold = playerConfig.powerLevels ? 
+      playerConfig.powerLevels[1].threshold : playerConfig.powerScoreThreshold || 50;
+    this.powerText.innerText = `火力：1 (分值 0/${initialThreshold})`;
+    
+    this.stageText.innerText = `阶段：0/${gameScene.stageManager?.maxStage || 6}`;
 
     // 监听开始/下一关
     this.game.events.on('Stage:start', () => {
@@ -77,16 +92,21 @@ export default class UIScene extends Phaser.Scene {
       this.resumeBtn.disabled       = false;
       this.pauseBtn.style.display   = 'block';
       this.resumeBtn.style.display  = 'none';
-      this.nextBtn.style.display    = 'none'; // 确保“下一关”也隐藏
+      this.nextBtn.style.display    = 'none'; // 确保"下一关"也隐藏
 
       // 重置 GameScene
       this.scene.stop('GameScene');
       this.scene.start('GameScene');
 
-      // 重置 UI 面板
-      this.hpText.innerText    = 'HP: 3';
-      this.powerText.innerText = '火力：1 (分值 0/50)';
-      this.stageText.innerText = '阶段：0/6';
+      // 重置 UI 面板 - 使用playerConfig中的值
+      this.hpText.innerText = `HP: ${playerConfig.hp}`;
+      
+      // 获取初始火力级别的升级阈值
+      const resetThreshold = playerConfig.powerLevels ? 
+        playerConfig.powerLevels[1].threshold : playerConfig.powerScoreThreshold || 50;
+      this.powerText.innerText = `火力：1 (分值 0/${resetThreshold})`;
+      
+      this.stageText.innerText = `阶段：0/${gameScene.stageManager?.maxStage || 6}`;
     });
 
     // 监听 GameScene 发来的 UI 事件
