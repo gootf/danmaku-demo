@@ -12,13 +12,21 @@ export default class GameScene extends Phaser.Scene {
     g.fillStyle(0x00ff00).fillRect(0,0,32,32).generateTexture('player',32,32);
     g.clear().fillStyle(0xff0000).fillRect(0,0,32,32).generateTexture('enemy',32,32);
     g.clear().fillStyle(0xffff00).fillRect(0,0,8,8).generateTexture('bullet',8,8);
-    g.clear().fillStyle(0xff00ff).fillCircle(0,0,4).generateTexture('pPoint',8,8);
+    g.clear().fillStyle(0xff00ff).fillRect(0,0,16,16).generateTexture('pPoint',16,16);
 
     // 玩家初始化
     this.player = this.physics.add.sprite(400,550,'player').setCollideWorldBounds(true);
     this.player.hp = 3;
     this.player.power = 1;
     this.player.powerScore = 0;
+    // 缩小判定区域
+    this.player.body.setSize(6, 6).setOffset(13, 13);
+    // 添加判定点显示
+    this.hitPoint = this.add.graphics();
+    this.hitPoint.fillStyle(0xffffff, 1);
+    this.hitPoint.fillCircle(0, 0, 3);
+    this.hitPoint.setDepth(10);
+    this.hitPoint.setVisible(true);
 
     // 分组
     this.bullets      = this.physics.add.group();
@@ -77,6 +85,13 @@ export default class GameScene extends Phaser.Scene {
         this.scene.get('UIScene').events.emit('UI:allClear');
       }
     }
+
+    // 判定点跟随自机
+    if (this.hitPoint && this.player.active) {
+      this.hitPoint.x = this.player.x;
+      this.hitPoint.y = this.player.y;
+      this.hitPoint.setVisible(true);
+    }
   }
 
   shootPlayer() {
@@ -95,6 +110,7 @@ export default class GameScene extends Phaser.Scene {
     enemy.hp--;
     if (enemy.hp <= 0) {
       const p = this.pPoints.create(enemy.x, enemy.y, 'pPoint');
+      p.body.setSize(32, 32).setOffset(-8, -8);
       p.body.velocity.y = 100;
       enemy.destroy();
       this.stageManager.recordKill();
