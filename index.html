@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>弹幕射击 Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js"></script>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; }
+    /* 给游戏画布添加边框，分割 UI 与游戏区 */
+    canvas { border: 2px solid #555; display: block; margin: auto; }
+    /* 状态面板 */
+    #ui-panel {
+      position: absolute; top: 10px; right: 10px;
+      width: 200px; padding: 10px;
+      background: rgba(30,30,30,0.8);
+      border: 2px solid #fff;
+      font-family: "Consolas", monospace;
+      color: #fff; z-index:1000;
+    }
+    #ui-panel h2 { margin:0 0 10px; text-align:center; }
+    #ui-panel div { margin-bottom: 6px; font-size:14px; }
+
+    /* 暂停 / 继续 / 重新开始 按钮 */
+    #pause-resume {
+      position: absolute; top: 10px; left: 10px;
+      z-index:1000;
+    }
+    #pause-resume button {
+      display: block; width: 80px; padding: 6px;
+      margin: 4px 0; background:#800; color:#fff;
+      border:none; font-size:14px; cursor:pointer;
+    }
+    #pause-resume button:hover { background:#a00; }
+
+    /* 跳转关卡输入 */
+    #jump-controls {
+      position: absolute; top: 120px; left: 10px; z-index:1000;
+    }
+    #jump-controls input {
+      width: 60px; padding:4px;
+    }
+    #jump-controls button {
+      width: 60px; padding:4px; margin-left:4px;
+      background:#080; color:#fff; border:none; cursor:pointer;
+    }
+    #jump-controls button:hover { background:#0b0; }
+
+    /* 开始 / 下一关 按钮 */
+    #overlay-btn {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      z-index:2000; text-align:center;
+    }
+    #overlay-btn button {
+      display:block; width:160px; padding:10px;
+      margin:6px auto; background:#800; color:#fff;
+      border:none; font-size:16px; cursor:pointer;
+    }
+    #overlay-btn button:hover { background:#a00; }
+  </style>
+</head>
+<body>
+  <div id="ui-panel">
+    <h2>状态 面板</h2>
+    <div id="hp-text">HP: 3</div>
+    <div id="power-text">火力：1 (分值 0/50)</div>
+    <div id="stage-text">阶段：0/6</div>
+  </div>
+
+  <div id="pause-resume">
+    <button id="pause-btn">暂停</button>
+    <button id="resume-btn" style="display:none">继续</button>
+    <button id="restart-btn" style="display:none; margin-top:8px">重新开始</button>
+  </div>
+
+  <div id="jump-controls">
+    <input id="jump-input" type="number" min="1" max="6" placeholder="关卡 1-6"/>
+    <button id="jump-btn">跳转</button>
+  </div>
+
+  <div id="overlay-btn">
+    <button id="start-btn">开始 游戏</button>
+    <button id="next-btn" style="display:none">继续 下一关</button>
+  </div>
+
+  <!-- 以 module 方式加载主逻辑 -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>
