@@ -1,3 +1,4 @@
+// GameScene.js
 import StageManager from './StageManager.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -37,9 +38,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 关卡管理器
     this.stageManager = new StageManager(this);
-
-    // 初始暂停
-    this.scene.pause();
+    // BootScene 已处理初始暂停，无需额外 pause
   }
 
   update() {
@@ -50,19 +49,43 @@ export default class GameScene extends Phaser.Scene {
     if (this.cursors.up.isDown    || this.wasd.up.isDown)    pl.setVelocityY(-200);
     if (this.cursors.down.isDown  || this.wasd.down.isDown)  pl.setVelocityY(200);
 
-    this.bullets.children.each(b      => b.y < 0    && b.destroy());
-    this.enemies.children.each(e      => e.y > 632  && e.destroy());
-    this.enemyBullets.children.each(b => b.y > 600  && b.destroy());
-    this.pPoints.children.each(p      => p.y > 600  && p.destroy());
+    this.bullets.children.each(b => b.y < 0 && b.destroy());
+
+    // 销毁离场（上下）的敌机，并调用自定义 update
+    this.enemies.children.each(e => {
+      if (e.y > 632 || e.y < -32) {
+        e.destroy();
+      } else if (typeof e.update === 'function') {
+        e.update();
+      }
+    });
+
+    this.enemyBullets.children.each(b => b.y > 600 && b.destroy());
+    this.pPoints.children.each(p => p.y > 600 && p.destroy());
+
+    // 自动进入下一关逻辑
+    const mgr = this.stageManager;
+    if (
+      mgr.spawnQueue && mgr.spawnQueue.length === 0 &&
+      this.enemies.countActive(true) === 0 &&
+      !mgr.stageCleared
+    ) {
+      mgr.stageCleared = true;
+      if (mgr.currentStage < mgr.maxStage) {
+        this.scene.get('UIScene').events.emit('UI:showNextBtn');
+      } else {
+        this.scene.get('UIScene').events.emit('UI:allClear');
+      }
+    }
   }
 
   shootPlayer() {
     if (!this.player.active) return;
     const rows = this.player.power;
     const spacing = 12;
-    const startX = this.player.x - (rows-1)*spacing/2;
-    for (let i=0; i<rows; i++) {
-      const b = this.bullets.create(startX+i*spacing, this.player.y-20, 'bullet');
+    const startX = this.player.x - (rows - 1) * spacing / 2;
+    for (let i = 0; i < rows; i++) {
+      const b = this.bullets.create(startX + i * spacing, this.player.y - 20, 'bullet');
       b.body.velocity.y = -300;
     }
   }
@@ -87,7 +110,7 @@ export default class GameScene extends Phaser.Scene {
 
   onPickupP(pl, p) {
     p.destroy();
-    if (pl.power < 4) {
+    if (pl.power < 5) {
       pl.powerScore += 10;
       if (pl.powerScore >= 50) {
         pl.power++;
@@ -99,7 +122,6 @@ export default class GameScene extends Phaser.Scene {
 
   gameOver() {
     this.add.text(400,300,'Game Over',{ font:'32px consolas', fill:'#f00' }).setOrigin(0.5);
-    // 通知 UI：游戏结束
     this.game.events.emit('Stage:gameOver');
     this.scene.pause();
   }
